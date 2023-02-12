@@ -16,11 +16,6 @@ class FoldersTableViewController: UITableViewController {
     var folders: [Folder]?
     let service = Service()
     
-    @IBAction func addFolder(_ sender: Any) {
-        alertAction()
-        present(alert, animated: true)
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -28,11 +23,19 @@ class FoldersTableViewController: UITableViewController {
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        getAllFolders()
+    }
+    
     private func getAllFolders() {
         self.folders = Array(realm.objects(Folder.self))
         tableView.reloadData()
     }
-
+    
+    @IBAction func addFolder(_ sender: Any) {
+        alertAction()
+        present(alert, animated: true)
+    }
     
     private func alertAction() {
     
@@ -44,7 +47,7 @@ class FoldersTableViewController: UITableViewController {
         let alertAction = UIAlertAction(title: "Add", style: .default) { action in
             if let text = self.alert.textFields?[0].text {
                 self.service.createFolder(text)
-                self.tableView.reloadData()
+                self.getAllFolders()
             }
         }
         alert.addAction(alertAction)
@@ -60,13 +63,37 @@ class FoldersTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "folder", for: indexPath)
-        cell.textLabel?.text = folders?[indexPath.row].name
-        cell.detailTextLabel?.text = "\(folders?[indexPath.row].notes.count)"
-        
-        return cell
+            let cell = tableView.dequeueReusableCell(withIdentifier: "folder", for: indexPath)
+            cell.textLabel?.text = folders?[indexPath.row].name
+            cell.detailTextLabel?.text = "\(folders?[indexPath.row].notes.count ?? 0)"
+            return cell
+
     }
     
-
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showNote", let dest = segue.destination as? NotesTableViewController, let selectFolderIndex = tableView.indexPathForSelectedRow {
+            let selectFolder = folders?[selectFolderIndex.row].id
+            dest.folderId = selectFolder
+        }
+    }
+    
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            
+            if let folder = folders?[indexPath.row] {
+                service.removeFolder(folder)
+                folders?.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+            }
+        } else if editingStyle == .insert {
+            //
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "showNote", sender: nil)
+    }
 
 }

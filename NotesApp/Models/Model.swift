@@ -11,6 +11,7 @@ import RealmSwift
 class Folder: Object {
     @Persisted(primaryKey: true) var id: ObjectId
     @Persisted var name: String = ""
+    @Persisted var date: Date = Date() 
     @Persisted var notes: List<Note>
 }
 

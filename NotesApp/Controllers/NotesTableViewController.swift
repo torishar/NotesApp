@@ -6,40 +6,56 @@
 //
 
 import UIKit
+import RealmSwift
 
 class NotesTableViewController: UITableViewController {
 
+    let realm = try! Realm()
+    var folderId: ObjectId?
+    var notes: [Note]?
+    var servise = Service()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+     
+        getNotes()
+        
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        getNotes()
+    }
+    
+    @IBAction func addNote(_ sender: Any) {
+        if let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "addNote") as? NoteViewController {
+            vc.folder = folderId
+            navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    private func getNotes() {
+        if let folder = realm.object(ofType: Folder.self, forPrimaryKey: folderId) {
+            self.notes = Array(folder.notes)
+            tableView.reloadData()
+        }
+        
+    }
+    
     // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 0
-    }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 0
+        return notes?.count ?? 0
     }
 
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
 
-        // Configure the cell...
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "note", for: indexPath)
+
+        cell.textLabel?.text = notes?[indexPath.row].noteTitle
 
         return cell
     }
-    */
 
     /*
     // Override to support conditional editing of the table view.
@@ -49,18 +65,33 @@ class NotesTableViewController: UITableViewController {
     }
     */
 
-    /*
+    
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
+  
+            if let note = notes?[indexPath.row] {
+                servise.removeNote(note)
+                notes?.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .fade)
+                
+            }
+
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
         }    
     }
-    */
+    
 
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "addNote") as? NoteViewController {
+            vc.folder = folderId
+            vc.note = notes?[indexPath.row]
+            navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
     /*
     // Override to support rearranging the table view.
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {

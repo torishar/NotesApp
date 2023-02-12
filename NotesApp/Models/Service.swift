@@ -61,7 +61,7 @@ class Service {
     }
     
     //update note
-    func updateNote(_ note: Note, newNote: Note) {
+    func updateNote(_ note: Note, _ newNote: Note) {
         try! realm.write({
             note.noteTitle = newNote.noteTitle
             note.noteContent = newNote.noteContent

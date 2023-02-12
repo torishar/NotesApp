@@ -6,24 +6,46 @@
 //
 
 import UIKit
+import RealmSwift
 
 class NoteViewController: UIViewController {
 
+    @IBOutlet weak var noteTitle: UITextField!
+    
+    @IBOutlet weak var noteContent: UITextView!
+    
+    var folder: ObjectId?
+    
+    var note: Note?
+    
+    let service = Service()
+    
+    @IBAction func saveNote(_ sender: Any) {
+        let newNote = Note()
+        newNote.noteTitle = noteTitle.text ?? ""
+        newNote.noteContent = noteContent.text ?? ""
+        
+        if note == nil {
+            //add note
+            service.createNote(folder!, newNote)
+        } else {
+            //update note
+            service.updateNote(note!, newNote)
+        }
+        
+        navigationController?.popViewController(animated: true)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        if note != nil {
+            noteTitle.text = note?.noteTitle
+            noteContent.text = note?.noteTitle
+        }
+        
     }
     
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }
